@@ -1,9 +1,9 @@
 # TYPO3 Extension ``bp_pagetree``
 
-This extension replaces and extends parts of the new page tree component in TYPO3 9 LTS, loading subpage trees up to 
-3 nesting levels as well as all subpage trees that have been explicitly opened by the current backend user. 
-This is helpful for large installations with a lot of pages, in which the v9 core component can run into performance 
-issues (server- and client-side).
+This extension replaces and extends parts of the new page tree component in TYPO3 9 LTS. By default, it loads
+subpage trees up to 3 nesting levels, adding all subpage trees that have been explicitly opened by the current 
+backend user.  This is helpful for large installations with a lot of pages, in which the v9 core component can run 
+into performance issues (server- and client-side).
 
 Should be regarded as a workaround until the core component has been refactored to load all subtrees asynchronously.
 
