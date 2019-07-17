@@ -9,6 +9,7 @@ namespace Bueroparallel\Pagetree\Hook;
  */
 
 use TYPO3\CMS\Backend\Controller\BackendController;
+use TYPO3\CMS\Backend\Routing\UriBuilder;
 use TYPO3\CMS\Core\Page\PageRenderer;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -33,8 +34,8 @@ class BackendControllerHook
     public function addJavaScript(array $configuration, BackendController $backendController)
     {
         $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
-        /** @var \TYPO3\CMS\Backend\Routing\UriBuilder $uriBuilder */
-        $uriBuilder = GeneralUtility::makeInstance(\TYPO3\CMS\Backend\Routing\UriBuilder::class);
+        /** @var UriBuilder $uriBuilder */
+        $uriBuilder = GeneralUtility::makeInstance(UriBuilder::class);
         $pageRenderer->loadRequireJsModule('TYPO3/CMS/BpPagetree/AjaxPagetree');
         $pageRenderer->addInlineSetting('AjaxPagetree', 'moduleUrl', (string)$uriBuilder->buildUriFromRoute('ajax_pagetree'));
     }

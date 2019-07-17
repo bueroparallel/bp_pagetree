@@ -9,6 +9,7 @@ namespace Bueroparallel\Pagetree\Xclass\Tree\Repository;
  * LICENSE.txt file that was distributed with this source code.
  */
 
+use PDO;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
@@ -240,7 +241,7 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
             ->from('pages')
             ->where(
                 // Only show records in default language
-                $queryBuilder->expr()->eq('sys_language_uid', $queryBuilder->createNamedParameter(0, \PDO::PARAM_INT))
+                $queryBuilder->expr()->eq('sys_language_uid', $queryBuilder->createNamedParameter(0, PDO::PARAM_INT))
             )
             ->andWhere(
                 $queryBuilder->expr()->in('pid', $parentUids)
@@ -262,7 +263,7 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
 	    $pageDepth = $this->depthByPageRecord[$pageUid];
 	    $page['_children'] = $groupedAndSortedPagesByPid[$pageUid] ?? [];
 	    if ($pageDepth >= $this->maxDepth && !empty($page['_children']) && !in_array($pageUid, $this->openNodes)) {
-		    $page['_children'] = [['uid' => '-9999', 'title' => '... loading ...']];
+		    $page['_children'] = [['uid' => '-9999', 'title' => '...']];
 	    }       
         ksort($page['_children']);
         foreach ($page['_children'] as &$child) {
