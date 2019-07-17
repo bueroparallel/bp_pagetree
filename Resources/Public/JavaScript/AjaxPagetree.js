@@ -95,7 +95,6 @@ define(['jquery',
                 this.update();
                 this.wrapper.find('.node.identifier-0_-9999 .node-icon-container').remove();
                 this.wrapper.find('.node.identifier-0_-9999 .node-name').attr('dx', 10);
-                this.wrapper.find('.node.identifier-0_-9999 .node-name').text('...');
 
                 if (node.expanded) {
                     var refresh = false;
@@ -104,18 +103,23 @@ define(['jquery',
                         var parents = this.data.nodes[i].parentsStateIdentifier;
                         if (parents.length > 0) {
                             parent = this.data.nodes[i].parentsStateIdentifier[0];
-                            if (parent && parent == node.stateIdentifier && identifier == '0_-9999') {
+                            if (parent && parent === node.stateIdentifier && identifier === '0_-9999') {
                                 refresh = true;
                             }
                         }
                     }
-                    if (refresh) {
+                    this.refreshTreeAfterUpdatingUsersettings = refresh;
+                    if (refresh === true) {
                         $('.svg-tree').find('.svg-tree-loader').show();
-                        //$('.svg-tree').find('.node-loader').css({top: node.y + this.settings.marginTop}).show();
-                        var pagetree = this;
-                        setTimeout(function() {
-                            pagetree.refreshTree();
-                        }, 400);
+                        var ajaxPagetree = this;
+                        $(document).ajaxComplete(function(event, xhr, settings) {
+                            if (settings.url.indexOf('/typo3/index.php?route=%2Fajax%2Fusersettings%2Fprocess')===0) {
+                                if (ajaxPagetree !== undefined && ajaxPagetree.refreshTreeAfterUpdatingUsersettings === true) {
+                                    ajaxPagetree.refreshTree();
+                                    ajaxPagetree.refreshTreeAfterUpdatingUsersettings = false;
+                                }
+                            }
+                        });
                     }
                 }
 
@@ -175,7 +179,7 @@ define(['jquery',
             this.tree.prepareDataForVisibleNodes();
             this.tree.update();
 
-            if (name == '') {
+            if (name === '') {
                 this.tree.refreshTree();
             }
 
@@ -183,7 +187,7 @@ define(['jquery',
 
         function ajaxPagetreeInitSubscriber(mutations) {
             $.each(mutations, function(index, mutation) {
-                if (mutation.addedNodes[0].id == 'typo3-pagetree') {
+                if (mutation.addedNodes[0].id === 'typo3-pagetree') {
                     if (!$('.svg-tree').data('ajax-pagetree-initialized')) {
                         var ajaxPagetree = new AjaxPagetree();
                         ajaxPagetree.initialize('#typo3-pagetree-tree');
