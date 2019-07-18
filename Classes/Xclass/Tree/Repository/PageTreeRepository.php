@@ -54,6 +54,54 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
     protected $backendUserConfiguration;
 
     /**
+     * Main entry point for this repository, to fetch the tree data for a page.
+     * Basically the page record, plus all child pages and their child pages recursively, stored within "_children" item.
+     *
+     * @param int $entryPoint the page ID to fetch the tree for
+     * @param callable $callback a callback to be used to check for permissions and filter out pages not to be included.
+     * @return array
+     */
+    public function getTree(int $entryPoint, callable $callback = null): array
+    {
+        $this->fetchAllPages();
+        if ($entryPoint === 0) {
+            $tree = $this->fullPageTree;
+        } else {
+            $tree = $this->findInPageTree($entryPoint, $this->fullPageTree);
+        }
+        if (!empty($tree) && $callback !== null) {
+            $this->applyCallbackToChildren($tree, $callback);
+        }
+        return $tree;
+    }
+
+    /**
+     * Removes items from a tree based on a callback, usually used for permission checks
+     *
+     * @param array $tree
+     * @param callable $callback
+     */
+    protected function applyCallbackToChildren(array &$tree, callable $callback)
+    {
+        if (!isset($tree['_children'])) {
+            return;
+        } else if (count($tree['_children']) === 1) {
+            // always include placeholders with dummy content, regardless of permissions
+            // these will be respected when the tree is refreshed
+            if (array_key_exists(0, $tree['_children']) && $tree['_children'][0]['uid'] === '-9999' ) {
+                return;
+            }
+        }
+        foreach ($tree['_children'] as $k => &$childPage) {
+            if (!call_user_func_array($callback, [$childPage])) {
+                unset($tree['_children'][$k]);
+                continue;
+            }
+            $this->applyCallbackToChildren($childPage, $callback);
+        }
+    }
+
+    /**
      * Fetch all non-deleted pages, regardless of permissions, provided they are below the max default level or have
      *   been opened explicitly by the current backend user.
      *
@@ -69,11 +117,13 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
                 
         $backendUserConfiguration = GeneralUtility::makeInstance(BackendUserConfiguration::class); 
         $pagetreeStates = $backendUserConfiguration->get('BackendComponents.States.Pagetree.stateHash');
-        foreach ($pagetreeStates as $key => $state) {
-	        if (strpos((string)$key, $this->currentWorkspace.'_') !== false && $state == 1) {
-		        $pageUid = (int) str_replace($this->currentWorkspace.'_', '', $key);
-		        $this->openNodes[] = $pageUid;
-	        }
+        if (!empty($pagetreeStates)) {
+            foreach ($pagetreeStates as $key => $state) {
+                if (strpos((string) $key, '_') > 0 && $state == 1) {
+                    $pageUid = (int) preg_replace('/(\d+)_/', '', $key);
+                    $this->openNodes[] = $pageUid;
+                }
+            }
         }
 
         $queryBuilder = $this->createPreparedQueryBuilder();
@@ -269,6 +319,27 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
         foreach ($page['_children'] as &$child) {
             $this->addChildrenToPage($child, $groupedAndSortedPagesByPid);
         }
+    }
+
+    /**
+     * Looking for a page by traversing the tree
+     *
+     * @param int $pageId the page ID to search for
+     * @param array $pages the page tree to look for the page
+     * @return array Array of the tree data, empty array if nothing was found
+     */
+    protected function findInPageTree(int $pageId, array $pages): array
+    {
+        foreach ($pages['_children'] as $childPage) {
+            if ((int)$childPage['uid'] === $pageId) {
+                return $childPage;
+            }
+            $result = $this->findInPageTree($pageId, $childPage);
+            if (!empty($result)) {
+                return $result;
+            }
+        }
+        return [];
     }
 	
 }

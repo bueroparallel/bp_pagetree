@@ -64,7 +64,6 @@ define(['jquery',
             }
 
             $.extend(this.settings, settings);
-
             this.render();
         };
 
@@ -103,7 +102,7 @@ define(['jquery',
                         var parents = this.data.nodes[i].parentsStateIdentifier;
                         if (parents.length > 0) {
                             parent = this.data.nodes[i].parentsStateIdentifier[0];
-                            if (parent && parent === node.stateIdentifier && identifier === '0_-9999') {
+                            if (parent && parent === node.stateIdentifier && identifier.indexOf('_-9999') > 0) {
                                 refresh = true;
                             }
                         }
