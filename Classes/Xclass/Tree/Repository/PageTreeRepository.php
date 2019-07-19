@@ -116,13 +116,17 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
         }
                 
         $backendUserConfiguration = GeneralUtility::makeInstance(BackendUserConfiguration::class); 
-        $pagetreeStates = $backendUserConfiguration->get('BackendComponents.States.Pagetree.stateHash');
-        if (!empty($pagetreeStates)) {
-            foreach ($pagetreeStates as $key => $state) {
-                if (strpos((string) $key, '_') > 0 && $state == 1) {
-                    $pageUid = (int) preg_replace('/(\d+)_/', '', $key);
-                    $this->openNodes[] = $pageUid;
-                }
+        $pagetreeStates = $backendUserConfiguration->get('BackendComponents.States.Pagetree');
+        if (is_object($pagetreeStates) && is_object($pagetreeStates->stateHash)) {
+            $pagetreeStates = (array)$pagetreeStates->stateHash;
+        } else {
+            $pagetreeStates = $pagetreeStates['stateHash'] ?: [];
+        }
+
+        foreach ($pagetreeStates as $key => $state) {
+            if (strpos((string) $key, '_') > 0 && $state == 1) {
+                $pageUid = (int) preg_replace('/(\d+)_/', '', $key);
+                $this->openNodes[] = $pageUid;
             }
         }
 
