@@ -1,0 +1,29 @@
+{
+    "name": "bueroparallel/bp-pagetree",
+    "type": "typo3-cms-extension",
+    "description": "Performance-optimized backend page tree for large TYPO3 v9 installations (> 10k pages)",
+    "keywords": [
+        "TYPO3",
+        "extension",
+        "backend",
+        "pagetree",
+        "performance"
+    ],
+    "homepage": "https://www.bueroparallel.de",
+    "authors": [
+        {
+            "name": "Thomas Fischer",
+            "role": "Developer",
+            "homepage": "https://www.bueroparallel.de"
+        }
+    ],
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "typo3/cms-core": "^9.5.0"
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "bp_pagetree"
+        }
+    }
+}
