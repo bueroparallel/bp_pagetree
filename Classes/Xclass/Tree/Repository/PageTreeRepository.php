@@ -10,6 +10,7 @@ namespace Bueroparallel\Pagetree\Xclass\Tree\Repository;
  */
 
 use PDO;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 use TYPO3\CMS\Core\Database\Query\Restriction\DeletedRestriction;
@@ -22,7 +23,7 @@ use TYPO3\CMS\Backend\Configuration\BackendUserConfiguration;
 class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepository {
 	
 	/**
-     * Maximum standard subtree depth (without explicitly open nodes), might be made configurable per installation
+     * Maximum standard subtree depth (without explicitly open nodes), configurable via extension options
      *
      * @var int
      */
@@ -153,9 +154,11 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
 	        $pageRecordsByDepth[1][] = $page['uid'];
         }
         
+        $maxDepth = $this->getMaxDepth();
+        
         for ($depth = 2; $depth <= 100; $depth++) {
 	        $pageUids = $pageRecordsByDepth[$depth-1];
-	        if ($depth > $this->maxDepth+1 && array_key_exists($depth-1, $pageRecordsByDepth)) {
+	        if ($depth > $maxDepth+1 && array_key_exists($depth-1, $pageRecordsByDepth)) {
 		        $pageUids = [];
 		        foreach ($pageRecordsByDepth[$depth-1] as $pageUid) {
 			        if (in_array($pageUid, $this->openNodes, true) || in_array($pageUid, $this->openNodeChildren, true)) {
@@ -316,7 +319,8 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
 	    $pageUid = (int) $page['uid'];
 	    $pageDepth = $this->depthByPageRecord[$pageUid];
 	    $page['_children'] = $groupedAndSortedPagesByPid[$pageUid] ?? [];
-	    if ($pageDepth >= $this->maxDepth && !empty($page['_children']) && !in_array($pageUid, $this->openNodes)) {
+	    $maxDepth = $this->getMaxDepth();
+	    if ($pageDepth >= $maxDepth && !empty($page['_children']) && !in_array($pageUid, $this->openNodes)) {
 		    $page['_children'] = [['uid' => '-9999', 'title' => '...']];
 	    }       
         ksort($page['_children']);
@@ -344,6 +348,15 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
             }
         }
         return [];
+    }
+    
+    protected function getMaxDepth() {
+        $maxDepth = GeneralUtility::makeInstance(ExtensionConfiguration::class)
+   ->get('bp_pagetree', 'maxDepth');
+        if (isset($maxDepth) && !empty($maxDepth)) {
+            return $maxDepth;
+        }
+        return $this->maxDepth;
     }
 	
 }

@@ -1,0 +1,2 @@
+# cat=General; type=int; label=Maximum default tree depth: Load this number of nesting levels by default, even if they have not been opened actively by the backend user. Should be tweaked per installation to have an optimal balance between performance and filter results. If emtpy, a default value of 3 nesting levels is used.
+maxDepth = 

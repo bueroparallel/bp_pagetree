@@ -1,6 +1,6 @@
 <?php
 $EM_CONF[$_EXTKEY] = array(
-	'title' => 'Faster Backend Pagetree',
+	'title' => 'Faster Backend Pagetree (v9)',
 	'description' => 'Performance-optimized backend page tree for large TYPO3 v9 installations (> 10k pages)',
 	'category' => 'be',
 	'author' => 'bueroparallel',
