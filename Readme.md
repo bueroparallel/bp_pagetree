@@ -9,7 +9,7 @@ Should be regarded as a workaround until the core component has been refactored 
 
 ## Installation
 
-As yet, only manual installation is possible. Addition to TER is planned for the near future.
+Installation is possible manually of course, via TER or composer.
 
 ## Known limitations
 
