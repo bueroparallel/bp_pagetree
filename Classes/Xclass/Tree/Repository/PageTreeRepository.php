@@ -19,6 +19,7 @@ use TYPO3\CMS\Core\DataHandling\PlainDataResolver;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Versioning\VersionState;
 use TYPO3\CMS\Backend\Configuration\BackendUserConfiguration;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
 
 class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepository {
 	
@@ -30,7 +31,7 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
     protected $maxDepth = 3;
     
     /**
-     * Explicitly open nodes for current backend user
+     * Explicitly open nodes for current backend user, including mount points and their rootline pages
      *
      * @var array
      */
@@ -130,6 +131,27 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
                 $this->openNodes[] = $pageUid;
             }
         }
+        
+        // force include mount points, including all their rootline pages
+        $backendUser = $GLOBALS['BE_USER'];
+        $entryPoints = (int)($backendUser->uc['pageTree_temporaryMountPoint'] ?? 0);
+        if ($entryPoints > 0) {
+            $entryPoints = [$entryPoints];
+        } else {
+            $entryPoints = array_map('intval', $backendUser->returnWebmounts());
+            $entryPoints = array_unique($entryPoints);
+        }
+        foreach ($entryPoints as $entryPoint) {
+            if (!in_array($entryPoint, $this->openNodes)) {
+                $this->openNodes[] = $entryPoint;
+            }
+            $rootline = BackendUtility::BEgetRootline($entryPoint);
+            foreach ($rootline as $rootlinePage) {
+                if (!in_array($rootlinePage['uid'], $this->openNodes)) {
+                    $this->openNodes[] = $rootlinePage['uid'];
+                }
+            }
+        }  
 
         $queryBuilder = $this->createPreparedQueryBuilder();
         
@@ -141,7 +163,7 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
 		        }
 	        }
         }
-
+        
         // get all first level records as base
         $pageRecords = $this->getChildPageRecords([$entryPointId]);
             
@@ -352,7 +374,7 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
     
     protected function getMaxDepth() {
         $maxDepth = GeneralUtility::makeInstance(ExtensionConfiguration::class)
-   ->get('bp_pagetree', 'maxDepth');
+            ->get('bp_pagetree', 'maxDepth');
         if (isset($maxDepth) && !empty($maxDepth)) {
             return $maxDepth;
         }
