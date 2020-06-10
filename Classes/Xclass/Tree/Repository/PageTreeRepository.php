@@ -63,9 +63,9 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
      * @param callable $callback a callback to be used to check for permissions and filter out pages not to be included.
      * @return array
      */
-    public function getTree(int $entryPoint, callable $callback = null): array
+    public function getTree(int $entryPoint, callable $callback = null, array $dbMounts = []): array
     {
-        $this->fetchAllPages();
+        $this->fetchAllPages($dbMounts);
         if ($entryPoint === 0) {
             $tree = $this->fullPageTree;
         } else {
@@ -109,7 +109,7 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
      *
      * @return [] a segment of pages by page uid, not the whole tree
      */
-    protected function fetchAllPages(): array
+    protected function fetchAllPages($dbMounts): array
     {
         $entryPointId = 0;
 
