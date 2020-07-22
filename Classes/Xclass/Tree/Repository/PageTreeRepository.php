@@ -166,7 +166,20 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
         
         // get all first level records as base
         $pageRecords = $this->getChildPageRecords([$entryPointId]);
-            
+
+        $ids = array_column($pageRecords, 'uid');
+        foreach ($dbMounts as $mount) {
+            $entryPointRootLine = BackendUtility::BEgetRootLine($mount, '', false, $this->fields);
+            foreach ($entryPointRootLine as $page) {
+                $pageId = (int)$page['uid'];
+                if (in_array($pageId, $ids) || $pageId === 0) {
+                    continue;
+                }
+                $pageRecords[] = $page;
+                $ids[] = $pageId;
+            }
+        }
+
         $pageRecordsByDepth = [
 	        1 => []
         ];
@@ -191,9 +204,14 @@ class PageTreeRepository extends \TYPO3\CMS\Backend\Tree\Repository\PageTreeRepo
 	        if (!empty($pageUids)) {
 		        $pageRecordsTmp = $this->getChildPageRecords($pageUids);
 		        if (!empty($pageRecordsTmp)) {
-		        	array_push($pageRecords,...$pageRecordsTmp);
 					$pageRecordsByDepth[$depth] = [];
+                    $ids = array_column($pageRecords, 'uid');
 					foreach ($pageRecordsTmp as $page) {
+                        $pageId = (int)$page['uid'];
+                        if (in_array($pageId, $ids) || $pageId === 0) {
+                            continue;
+                        }
+                        $pageRecords[] = $page;
 					    $pageRecordsByDepth[$depth][] = $page['uid'];
 				        $this->depthByPageRecord[$page['uid']] = $depth;
 	        		}
